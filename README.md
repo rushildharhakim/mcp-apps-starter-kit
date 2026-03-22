@@ -10,31 +10,10 @@ Built with the [MCP Apps SDK](https://github.com/anthropics/model-context-protoc
 
 ## The 5 Apps
 
-### Budget Planner
-> *"Help me plan a $5K monthly budget"*
-
-Pie chart + bar chart breakdown of spending categories with surplus/deficit tracking. I use this whenever I want to sanity-check how I'm allocating money across categories.
-
-<!-- ![Budget Planner in Claude Desktop](screenshots/budget.png) -->
-
-### Product Comparison
-> *"Compare MacBook Air M3 vs ThinkPad X1 Carbon"*
-
-Side-by-side cards with pros/cons, star ratings, and a "Best Pick" badge. Great for any time you're weighing two or more options — laptops, tools, services, whatever.
-
-<!-- ![Product Comparison in Claude Desktop](screenshots/comparison.png) -->
-
-### Trip Planner
-> *"Plan a 4-day trip to Lisbon on a $2K budget"*
-
-Day-by-day itinerary with time slots, estimated costs per activity, and a running budget tracker. Makes trip planning feel tangible instead of just a wall of text.
-
-<!-- ![Trip Planner in Claude Desktop](screenshots/trip.png) -->
-
-### Workout Tracker
+### Workout Tracker (most tested)
 > *"Give me a 4-week strength training plan"*
 
-The most feature-rich of the five — this one demonstrates what's really possible with MCP Apps:
+This is the app I've spent the most time on — it's the most feature-rich and thoroughly tested of the five. It demonstrates what's really possible with MCP Apps:
 
 - **Dark theme** with a clean zinc + blue palette
 - **Expandable exercise cards** with form cues, sets/reps, and muscle group indicators
@@ -46,7 +25,32 @@ The most feature-rich of the five — this one demonstrates what's really possib
 
 <!-- ![Workout Tracker in Claude Desktop](screenshots/workout.png) -->
 
-### Decision Matrix
+---
+
+*The following 4 apps are work-in-progress — they render and are functional, but haven't been as heavily tested or polished as the Workout Tracker. Feel free to try them out and iterate on them.*
+
+### Budget Planner (WIP)
+> *"Help me plan a $5K monthly budget"*
+
+Pie chart + bar chart breakdown of spending categories with surplus/deficit tracking. I use this whenever I want to sanity-check how I'm allocating money across categories.
+
+<!-- ![Budget Planner in Claude Desktop](screenshots/budget.png) -->
+
+### Product Comparison (WIP)
+> *"Compare MacBook Air M3 vs ThinkPad X1 Carbon"*
+
+Side-by-side cards with pros/cons, star ratings, and a "Best Pick" badge. Great for any time you're weighing two or more options — laptops, tools, services, whatever.
+
+<!-- ![Product Comparison in Claude Desktop](screenshots/comparison.png) -->
+
+### Trip Planner (WIP)
+> *"Plan a 4-day trip to Lisbon on a $2K budget"*
+
+Day-by-day itinerary with time slots, estimated costs per activity, and a running budget tracker. Makes trip planning feel tangible instead of just a wall of text.
+
+<!-- ![Trip Planner in Claude Desktop](screenshots/trip.png) -->
+
+### Decision Matrix (WIP)
 > *"Help me decide between 3 apartments"*
 
 Weighted criteria table with heatmap-style scoring and automatic rankings. I use this for any multi-factor decision — it forces you to think about what actually matters.
