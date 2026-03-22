@@ -6,13 +6,13 @@ import * as s from "./shared/styles";
 function TripExplorerView() {
   const [data, setData] = useState<any>(null);
   const [appRef, setAppRef] = useState<any>(null);
-  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
   const [toast, setToast] = useState("");
   const [adjBudget, setAdjBudget] = useState<number | null>(null);
   const [adjDays, setAdjDays] = useState<number | null>(null);
 
   useApp({
-    appInfo: { name: "TripExplorer", version: "1.0.0" },
+    appInfo: { name: "TripExplorer", version: "2.0.0" },
     capabilities: {},
     onAppCreated: (app) => {
       setAppRef(app);
@@ -43,14 +43,62 @@ function TripExplorerView() {
 
   const fmtCurr = useCallback((n: number) => {
     if (currency === "INR") {
-      if (n >= 100000) return `${sym}${(n / 100000).toFixed(1)}L`;
-      if (n >= 1000) return `${sym}${(n / 1000).toFixed(0)}K`;
-      return `${sym}${n}`;
+      if (n >= 100000) return sym + (n / 100000).toFixed(1) + "L";
+      if (n >= 1000) return sym + (n / 1000).toFixed(0) + "K";
+      return sym + n;
     }
-    if (n >= 1000000) return `${sym}${(n / 1000000).toFixed(1)}M`;
-    if (n >= 1000) return `${sym}${(n / 1000).toFixed(0)}K`;
-    return `${sym}${n}`;
+    if (n >= 1000000) return sym + (n / 1000000).toFixed(1) + "M";
+    if (n >= 1000) return sym + (n / 1000).toFixed(0) + "K";
+    return sym + n;
   }, [currency, sym]);
+
+  const toggleSelect = useCallback((i: number) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
+  }, []);
+
+  // Plan trip for one or two selected destinations
+  const planSelected = useCallback(async () => {
+    if (!appRef || selected.size === 0) return;
+    const days = adjDays || data?.trip_days || 5;
+    const budget = adjBudget || data?.budget;
+    const budgetStr = budget ? ` with a ${sym}${budget} budget` : "";
+    const currStr = currency !== "USD" ? ` Use ${currency} for all costs.` : "";
+    const dests = Array.from(selected).map(i => data.destinations[i]);
+
+    if (dests.length === 1) {
+      try {
+        await appRef.sendMessage({
+          role: "user",
+          content: [{
+            type: "text",
+            text: `I'd like to go to ${dests[0].name}, ${dests[0].country} for ${days} days${budgetStr}. Please create a detailed day-by-day itinerary using render_trip with specific activities, times, locations, and costs.${currStr}`,
+          }],
+        });
+        showToast("Planning your " + dests[0].name + " trip...");
+      } catch {
+        showToast("Could not send \u2014 try typing in chat instead");
+      }
+    } else {
+      const names = dests.map(d => d.name + ", " + d.country).join(" and ");
+      try {
+        await appRef.sendMessage({
+          role: "user",
+          content: [{
+            type: "text",
+            text: `I'd like to compare detailed itineraries for ${names} \u2014 both for ${days} days${budgetStr}. Please create a day-by-day itinerary for EACH destination using render_trip (call it twice, once per destination) with specific activities, times, locations, and costs so I can compare them side by side.${currStr}`,
+          }],
+        });
+        showToast("Planning both itineraries...");
+      } catch {
+        showToast("Could not send \u2014 try typing in chat instead");
+      }
+    }
+  }, [appRef, selected, data, adjBudget, adjDays, currency, sym]);
 
   const planTrip = useCallback(async (dest: any) => {
     if (!appRef) return;
@@ -66,9 +114,9 @@ function TripExplorerView() {
           text: `I'd like to go to ${dest.name}, ${dest.country} for ${days} days${budgetStr}. Please create a detailed day-by-day itinerary using render_trip with specific activities, times, locations, and costs.${currStr}`,
         }],
       });
-      showToast(`Planning your ${dest.name} trip...`);
+      showToast("Planning your " + dest.name + " trip...");
     } catch {
-      showToast("Could not send — try typing in chat instead");
+      showToast("Could not send \u2014 try typing in chat instead");
     }
   }, [appRef, data, adjBudget, adjDays, currency, sym]);
 
@@ -78,7 +126,7 @@ function TripExplorerView() {
     const budget = adjBudget || data?.budget;
     const source = data?.source || "";
     const budgetStr = budget ? ` with a ${sym}${budget} budget` : "";
-    const sourceStr = source ? ` from ${source}` : "";
+    const sourceStr = source ? " from " + source : "";
     const currStr = currency !== "USD" ? ` Use ${currency} for all costs and budget estimates.` : "";
     try {
       await appRef.sendMessage({
@@ -90,7 +138,7 @@ function TripExplorerView() {
       });
       showToast("Refreshing options with new preferences...");
     } catch {
-      showToast("Could not send — try typing in chat instead");
+      showToast("Could not send \u2014 try typing in chat instead");
     }
   }, [appRef, data, adjBudget, adjDays, currency, sym]);
 
@@ -100,7 +148,6 @@ function TripExplorerView() {
   const activeBudget = adjBudget || budget;
   const activeDays = adjDays || trip_days;
 
-  // Budget fit helper
   const budgetFit = (dest: any) => {
     if (!activeBudget || !dest.budget_estimate) return "unknown";
     if (activeBudget >= dest.budget_estimate.high) return "comfortable";
@@ -115,7 +162,6 @@ function TripExplorerView() {
     unknown: { bg: "#f3f4f6", text: "#6b7280", label: "\u2014" },
   };
 
-  // Travel mode icons
   const modeIcon: Record<string, string> = {
     flight: "\u2708\uFE0F", train: "\uD83D\uDE86", drive: "\uD83D\uDE97", bus: "\uD83D\uDE8C",
   };
@@ -128,13 +174,37 @@ function TripExplorerView() {
         <h2 style={s.headerTitle}>{title || "Where should you go?"}</h2>
         <p style={s.headerSubtitle}>
           {destinations.length} destinations
-          {source ? ` from ${source}` : ""}
-          {activeDays ? ` \u00B7 ${activeDays} days` : ""}
-          {activeBudget ? ` \u00B7 Budget: ${fmtCurr(activeBudget)}` : ""}
+          {source ? " from " + source : ""}
+          {activeDays ? " \u00B7 " + activeDays + " days" : ""}
+          {activeBudget ? " \u00B7 Budget: " + fmtCurr(activeBudget) : ""}
         </p>
       </div>
 
       <div style={s.body}>
+        {/* Multi-select hint + action */}
+        {selected.size > 0 && (
+          <div style={{
+            display: "flex", justifyContent: "space-between", alignItems: "center",
+            padding: "10px 14px", marginBottom: 16, background: "#fff7ed",
+            borderRadius: 8, border: "1px solid #fed7aa",
+          }}>
+            <span style={{ fontSize: 13, color: "#9a3412" }}>
+              {selected.size} destination{selected.size > 1 ? "s" : ""} selected
+              {selected.size === 2 && " \u2014 compare both itineraries"}
+            </span>
+            <button
+              onClick={planSelected}
+              style={{
+                padding: "7px 16px", borderRadius: 8, border: "none",
+                background: "#ea580c", color: "#fff", fontWeight: 600,
+                fontSize: 12, cursor: "pointer",
+              }}
+            >
+              {selected.size === 1 ? "Plan this trip" : "Compare both"}
+            </button>
+          </div>
+        )}
+
         {/* Adjustable preferences bar */}
         {(budget || trip_days) && (
           <div style={{
@@ -149,8 +219,7 @@ function TripExplorerView() {
                 </label>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <input
-                    type="range"
-                    min={2} max={21}
+                    type="range" min={2} max={21}
                     value={adjDays || trip_days}
                     onChange={(e) => setAdjDays(Number(e.target.value))}
                     style={{ flex: 1, accentColor: "#ea580c" }}
@@ -195,49 +264,61 @@ function TripExplorerView() {
         {/* Destination cards */}
         <div style={{
           display: "grid",
-          gridTemplateColumns: destinations.length <= 2 ? `repeat(${destinations.length}, 1fr)` : `repeat(${Math.min(destinations.length, 3)}, 1fr)`,
+          gridTemplateColumns: destinations.length <= 2 ? "repeat(" + destinations.length + ", 1fr)" : "repeat(" + Math.min(destinations.length, 3) + ", 1fr)",
           gap: 16,
         }}>
           {destinations.map((dest: any, i: number) => {
             const fit = budgetFit(dest);
             const fitInfo = fitColor[fit];
-            const isSelected = selectedIdx === i;
+            const isSelected = selected.has(i);
 
             return (
               <div
                 key={i}
-                onClick={() => setSelectedIdx(isSelected ? null : i)}
                 style={{
                   border: isSelected ? "2px solid #ea580c" : "1px solid #e5e7eb",
                   borderRadius: 12,
                   overflow: "hidden",
-                  cursor: "pointer",
                   transition: "all 0.2s ease",
                   background: isSelected ? "#fff7ed" : "#fff",
                 }}
               >
                 {/* Card header */}
-                <div style={{
-                  background: isSelected ? "#ea580c" : "#f9fafb",
-                  padding: "14px 16px",
-                  color: isSelected ? "#fff" : "#111827",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}>
+                <div
+                  onClick={() => toggleSelect(i)}
+                  style={{
+                    background: isSelected ? "#ea580c" : "#f9fafb",
+                    padding: "14px 16px",
+                    color: isSelected ? "#fff" : "#111827",
+                    display: "flex", justifyContent: "space-between", alignItems: "center",
+                    cursor: "pointer",
+                  }}
+                >
                   <div>
                     <span style={{ fontSize: 22, marginRight: 8 }}>{dest.image_emoji || "\uD83C\uDF0D"}</span>
                     <span style={{ fontSize: 16, fontWeight: 700 }}>{dest.name}</span>
                     <span style={{ fontSize: 13, opacity: 0.7, marginLeft: 6 }}>{dest.country}</span>
                   </div>
-                  {activeBudget && dest.budget_estimate && (
-                    <span style={{
-                      ...s.badge(isSelected ? "rgba(255,255,255,0.2)" : fitInfo.bg, isSelected ? "#fff" : fitInfo.text),
-                      fontSize: 10,
+                  <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                    {activeBudget && dest.budget_estimate && (
+                      <span style={{
+                        ...s.badge(isSelected ? "rgba(255,255,255,0.2)" : fitInfo.bg, isSelected ? "#fff" : fitInfo.text),
+                        fontSize: 10,
+                      }}>
+                        {fitInfo.label}
+                      </span>
+                    )}
+                    {/* Selection checkbox */}
+                    <div style={{
+                      width: 20, height: 20, borderRadius: 4,
+                      border: isSelected ? "2px solid #fff" : "2px solid #d1d5db",
+                      background: isSelected ? "#fff" : "transparent",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      flexShrink: 0,
                     }}>
-                      {fitInfo.label}
-                    </span>
-                  )}
+                      {isSelected && <span style={{ color: "#ea580c", fontSize: 14, fontWeight: 700 }}>{"\u2713"}</span>}
+                    </div>
+                  </div>
                 </div>
 
                 <div style={{ padding: 16 }}>
@@ -251,8 +332,22 @@ function TripExplorerView() {
                   {/* Budget estimate */}
                   {dest.budget_estimate && (
                     <div style={{ fontSize: 12, color: "#374151", marginBottom: 10 }}>
-                      <span style={{ fontWeight: 600 }}>{fmtCurr(dest.budget_estimate.low)}\u2013{fmtCurr(dest.budget_estimate.high)}</span>
+                      <span style={{ fontWeight: 600 }}>{fmtCurr(dest.budget_estimate.low)}{" \u2013 "}{fmtCurr(dest.budget_estimate.high)}</span>
                       <span style={{ color: "#9ca3af", marginLeft: 4 }}>est. total</span>
+                    </div>
+                  )}
+
+                  {/* Weather / temperature */}
+                  {dest.weather && (
+                    <div style={{
+                      display: "flex", gap: 8, alignItems: "center",
+                      marginBottom: 10, fontSize: 12, color: "#374151",
+                    }}>
+                      <span>{"\uD83C\uDF21\uFE0F"}</span>
+                      <span style={{ fontWeight: 600 }}>{dest.weather.temp_range || dest.weather}</span>
+                      {dest.weather.condition && (
+                        <span style={{ color: "#9ca3af" }}>{dest.weather.condition}</span>
+                      )}
                     </div>
                   )}
 
@@ -264,7 +359,7 @@ function TripExplorerView() {
                     }}>
                       {dest.distance_km != null && (
                         <div style={{ fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: dest.travel_options ? 6 : 0 }}>
-                          {dest.distance_km >= 1000 ? `${(dest.distance_km / 1000).toFixed(1)}K` : dest.distance_km} km away
+                          {dest.distance_km >= 1000 ? (dest.distance_km / 1000).toFixed(1) + "K" : dest.distance_km} km away
                         </div>
                       )}
                       {dest.travel_options && (
@@ -318,21 +413,12 @@ function TripExplorerView() {
 
                   {/* Plan button */}
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      planTrip(dest);
-                    }}
+                    onClick={(e) => { e.stopPropagation(); planTrip(dest); }}
                     style={{
-                      width: "100%",
-                      padding: "10px 16px",
-                      borderRadius: 8,
-                      border: "none",
-                      background: isSelected ? "#ea580c" : "#f97316",
-                      color: "#fff",
-                      fontWeight: 600,
-                      fontSize: 13,
-                      cursor: "pointer",
-                      transition: "background 0.2s",
+                      width: "100%", padding: "10px 16px", borderRadius: 8,
+                      border: "none", background: isSelected ? "#ea580c" : "#f97316",
+                      color: "#fff", fontWeight: 600, fontSize: 13,
+                      cursor: "pointer", transition: "background 0.2s",
                     }}
                   >
                     Plan this trip
@@ -342,21 +428,21 @@ function TripExplorerView() {
             );
           })}
         </div>
+
+        {/* Multi-select hint */}
+        {selected.size === 0 && (
+          <p style={{ fontSize: 11, color: "#9ca3af", textAlign: "center" as const, marginTop: 12 }}>
+            Tap a card header to select it. Select up to 2 to compare detailed itineraries side by side.
+          </p>
+        )}
       </div>
 
       {/* Toast */}
       {toast && (
         <div style={{
-          position: "fixed" as const,
-          bottom: 20,
-          left: "50%",
-          transform: "translateX(-50%)",
-          background: "#18181b",
-          color: "#fff",
-          padding: "10px 20px",
-          borderRadius: 8,
-          fontSize: 13,
-          zIndex: 999,
+          position: "fixed" as const, bottom: 20, left: "50%",
+          transform: "translateX(-50%)", background: "#18181b", color: "#fff",
+          padding: "10px 20px", borderRadius: 8, fontSize: 13, zIndex: 999,
         }}>
           {toast}
         </div>

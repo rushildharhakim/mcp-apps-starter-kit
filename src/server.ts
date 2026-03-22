@@ -133,12 +133,12 @@ registerAppTool(
   {
     title: "Trip Explorer",
     description:
-      "Render an interactive destination comparison view where the user can explore 3-5 trip options side by side before committing to a detailed itinerary. Each destination MUST include: name, country, tagline, budget_estimate (low/high in the specified currency), distance_km (from source city), travel_options (object with mode keys like flight/train/drive/bus and duration string values e.g. {\"flight\":\"2h 30m\",\"train\":\"6h\",\"drive\":\"8h\"}), best_months, highlights, travel_style tags, and image_emoji. Use this tool FIRST when a user asks about vacation/trip planning — let them compare destinations before calling render_trip for the detailed itinerary.",
+      "Render an interactive destination comparison view where the user can explore 3-5 trip options side by side before committing to a detailed itinerary. Each destination MUST include: name, country, tagline, budget_estimate (low/high in the specified currency), distance_km (from source city), travel_options (object with mode keys like flight/train/drive/bus and duration string values e.g. {\"flight\":\"2h 30m\",\"train\":\"6h\",\"drive\":\"8h\"}), weather (object with temp_range string e.g. \"22-32°C\" and condition string e.g. \"Sunny & humid\"), best_months, highlights, travel_style tags, and image_emoji. The user can select up to 2 destinations to compare detailed itineraries side by side. Use this tool FIRST when a user asks about vacation/trip planning — let them compare destinations before calling render_trip for the detailed itinerary.",
     inputSchema: {
       destinations: z
         .string()
         .describe(
-          'JSON array: [{"name":"Goa","country":"India","tagline":"Sun, sand & seafood","budget_estimate":{"low":15000,"high":35000},"distance_km":590,"travel_options":{"flight":"1h 30m","train":"12h","drive":"10h"},"best_months":["Nov","Dec","Jan","Feb"],"highlights":["Baga Beach","Old Goa churches","Dudhsagar Falls","Spice plantations"],"travel_style":["beach","food","nightlife"],"image_emoji":"🏖️"}, ...]'
+          'JSON array: [{"name":"Goa","country":"India","tagline":"Sun, sand & seafood","budget_estimate":{"low":15000,"high":35000},"distance_km":590,"travel_options":{"flight":"1h 30m","train":"12h","drive":"10h"},"weather":{"temp_range":"25-33°C","condition":"Warm & sunny"},"best_months":["Nov","Dec","Jan","Feb"],"highlights":["Baga Beach","Old Goa churches","Dudhsagar Falls","Spice plantations"],"travel_style":["beach","food","nightlife"],"image_emoji":"🏖️"}, ...]'
         ),
       trip_days: z.number().optional().describe("Number of days for the trip"),
       budget: z.number().optional().describe("User's total budget in the specified currency"),
