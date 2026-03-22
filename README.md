@@ -10,7 +10,7 @@ Built with the [MCP Apps SDK](https://github.com/anthropics/model-context-protoc
 
 ## The 5 Apps
 
-### Workout Tracker (most tested)
+### Workout Tracker
 > *"Give me a 4-week strength training plan"*
 
 This is the app I've spent the most time on — it's the most feature-rich and thoroughly tested of the five. It demonstrates what's really possible with MCP Apps:
