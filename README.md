@@ -25,9 +25,31 @@ This is the app I've spent the most time on — it's the most feature-rich and t
 
 <!-- ![Workout Tracker in Claude Desktop](screenshots/workout.png) -->
 
+### Trip Planner
+> *"I'm in Mumbai and want a 5-day vacation with a ₹50,000 budget — show me some options"*
+
+A two-phase trip planning experience. **Phase 1 (Trip Explorer)** shows 3-5 destination options side by side with:
+
+- **Distance + travel modes** — km away, with flight/train/drive durations from your city
+- **Weather** — expected temperature range and conditions
+- **Budget fit** — color-coded against your budget (green/yellow/red)
+- **Adjustable sliders** — change budget or trip duration, hit "Refresh options" to regenerate
+- **Multi-select** — pick up to 2 destinations to compare detailed itineraries side by side
+- **Currency support** — INR, USD, EUR, etc. with proper formatting
+
+**Phase 2 (Itinerary)** renders a day-by-day plan where you can:
+
+- **Swap or remove** individual activities with one tap
+- **Comment** on any activity with specific feedback
+- **Adjust trip style** — quick chips like "More relaxed", "Foodie focus", or type your own
+- **Queue changes** and send them all to Claude at once to regenerate
+
+<!-- ![Trip Explorer in Claude Desktop](screenshots/trip-explorer.png) -->
+<!-- ![Trip Planner in Claude Desktop](screenshots/trip.png) -->
+
 ---
 
-*The following 4 apps are work-in-progress — they render and are functional, but haven't been as heavily tested or polished as the Workout Tracker. Feel free to try them out and iterate on them.*
+*The following 3 apps are work-in-progress — they render and are functional, but haven't been as heavily tested or polished. Feel free to try them out and iterate on them.*
 
 ### Budget Planner (WIP)
 > *"Help me plan a $5K monthly budget"*
@@ -42,13 +64,6 @@ Pie chart + bar chart breakdown of spending categories with surplus/deficit trac
 Side-by-side cards with pros/cons, star ratings, and a "Best Pick" badge. Great for any time you're weighing two or more options — laptops, tools, services, whatever.
 
 <!-- ![Product Comparison in Claude Desktop](screenshots/comparison.png) -->
-
-### Trip Planner (WIP)
-> *"Plan a 4-day trip to Lisbon on a $2K budget"*
-
-Day-by-day itinerary with time slots, estimated costs per activity, and a running budget tracker. Makes trip planning feel tangible instead of just a wall of text.
-
-<!-- ![Trip Planner in Claude Desktop](screenshots/trip.png) -->
 
 ### Decision Matrix (WIP)
 > *"Help me decide between 3 apartments"*
@@ -130,12 +145,13 @@ Each view is a self-contained React app bundled into a single HTML file via Vite
 ```
 mcp-apps-starter-kit/
   src/
-    server.ts                          # MCP server — 5 tools + 5 resources + 2 utility tools
+    server.ts                          # MCP server — 6 tools + 6 resources + 2 utility tools
     views/
       shared/styles.ts                 # Inline style helpers
       BudgetView.tsx                   # Pie + bar charts (Recharts)
       ComparisonView.tsx               # Side-by-side comparison grid
-      TripPlannerView.tsx              # Day-by-day itinerary cards
+      TripExplorerView.tsx             # Destination comparison + selection (Phase 1)
+      TripPlannerView.tsx              # Interactive day-by-day itinerary (Phase 2)
       WorkoutPlanView.tsx              # Interactive workout tracker
       DecisionMatrixView.tsx           # Weighted decision matrix + heatmap
       *.html                           # Entry points for each view
