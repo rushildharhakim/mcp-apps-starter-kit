@@ -4,7 +4,7 @@
   "description": "5 personal MCP Apps components for Claude Desktop — budgets, comparisons, trips, workouts, decisions",
   "type": "module",
   "scripts": {
-    "build:views": "VITE_VIEW=budget vite build && VITE_VIEW=comparison vite build && VITE_VIEW=trip-planner vite build && VITE_VIEW=workout-plan vite build && VITE_VIEW=decision-matrix vite build",
+    "build:views": "VITE_VIEW=budget vite build && VITE_VIEW=comparison vite build && VITE_VIEW=trip-explorer vite build && VITE_VIEW=trip-planner vite build && VITE_VIEW=workout-plan vite build && VITE_VIEW=decision-matrix vite build",
     "build:server": "tsc",
     "build": "rm -rf dist-views && npm run build:views && npm run build:server",
     "start": "node dist/server.js"

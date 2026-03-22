@@ -123,7 +123,63 @@ registerAppResource(
 );
 
 // ---------------------------------------------------------------------------
-// 3. Trip Planner
+// 3a. Trip Explorer (Phase 1 — destination comparison)
+// ---------------------------------------------------------------------------
+const TRIP_EXPLORER_URI = "ui://starter-kit/trip-explorer.html";
+
+registerAppTool(
+  server,
+  "render_trip_explorer",
+  {
+    title: "Trip Explorer",
+    description:
+      "Render an interactive destination comparison view where the user can explore 3-5 trip options side by side before committing to a detailed itinerary. Each destination MUST include: name, country, tagline, budget_estimate (low/high in the specified currency), distance_km (from source city), travel_options (object with mode keys like flight/train/drive/bus and duration string values e.g. {\"flight\":\"2h 30m\",\"train\":\"6h\",\"drive\":\"8h\"}), best_months, highlights, travel_style tags, and image_emoji. Use this tool FIRST when a user asks about vacation/trip planning — let them compare destinations before calling render_trip for the detailed itinerary.",
+    inputSchema: {
+      destinations: z
+        .string()
+        .describe(
+          'JSON array: [{"name":"Goa","country":"India","tagline":"Sun, sand & seafood","budget_estimate":{"low":15000,"high":35000},"distance_km":590,"travel_options":{"flight":"1h 30m","train":"12h","drive":"10h"},"best_months":["Nov","Dec","Jan","Feb"],"highlights":["Baga Beach","Old Goa churches","Dudhsagar Falls","Spice plantations"],"travel_style":["beach","food","nightlife"],"image_emoji":"🏖️"}, ...]'
+        ),
+      trip_days: z.number().optional().describe("Number of days for the trip"),
+      budget: z.number().optional().describe("User's total budget in the specified currency"),
+      currency: z.string().optional().describe("Currency code, e.g. INR, USD, EUR. Defaults to USD. Use the currency the user mentions or infer from their location."),
+      source: z.string().optional().describe("The user's starting city/location, e.g. 'Mumbai' or 'San Francisco'"),
+      title: z.string().optional().describe("Explorer title, e.g. 'Where should you go?'"),
+    },
+    _meta: { ui: { resourceUri: TRIP_EXPLORER_URI } },
+  },
+  async ({ destinations, trip_days, budget, currency, source, title }) => {
+    const parsed = JSON.parse(destinations);
+    const result = {
+      component: "TripExplorer",
+      title: title || "Where should you go?",
+      destinations: parsed,
+      trip_days,
+      budget,
+      currency: currency || "USD",
+      source,
+    };
+    return {
+      structuredContent: result,
+      content: [{ type: "text" as const, text: JSON.stringify(result) }],
+    };
+  }
+);
+
+registerAppResource(
+  server,
+  "Trip Explorer View",
+  TRIP_EXPLORER_URI,
+  { description: "Interactive destination comparison for trip planning" },
+  async () => ({
+    contents: [
+      { uri: TRIP_EXPLORER_URI, mimeType: RESOURCE_MIME_TYPE, text: loadView("trip-explorer.html") },
+    ],
+  })
+);
+
+// ---------------------------------------------------------------------------
+// 3b. Trip Planner (Phase 2 — detailed itinerary)
 // ---------------------------------------------------------------------------
 const TRIP_URI = "ui://starter-kit/trip-planner.html";
 
