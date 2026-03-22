@@ -1,28 +1,70 @@
 # MCP Apps Starter Kit
 
-5 interactive UI components for Claude Desktop, built with the [MCP Apps SDK](https://github.com/anthropics/model-context-protocol). Each tool renders a rich, interactive view inside Claude's chat — not just text, but real React UIs with charts, forms, and bidirectional communication.
+I built these 5 mini apps for my own daily use inside Claude Desktop — budgeting, comparing products, planning trips, tracking workouts, and making decisions. They turned out to be genuinely useful, so I'm putting them out here for anyone to explore, remix, or use as a starting point for their own MCP Apps.
+
+Each app renders as a real interactive UI right inside Claude's chat — not just text, but React components with charts, forms, progress tracking, and two-way communication with Claude. If you've ever wished Claude could show you something visual instead of just describing it, this is what that looks like.
+
+Built with the [MCP Apps SDK](https://github.com/anthropics/model-context-protocol).
+
+---
 
 ## The 5 Apps
 
-| Tool | What it renders | Try it |
-|------|----------------|--------|
-| `render_budget` | Pie chart + bar chart of spending categories with surplus/deficit tracking | *"Help me plan a $5K monthly budget"* |
-| `render_comparison` | Side-by-side cards with pros/cons, ratings, and "Best Pick" badge | *"Compare MacBook Air M3 vs ThinkPad X1 Carbon"* |
-| `render_trip` | Day-by-day itinerary with time slots, costs, and budget tracker | *"Plan a 4-day trip to Lisbon on a $2K budget"* |
-| `render_workout` | Interactive workout plan with progress tracking, video links, and history | *"Give me a 4-week strength training plan"* |
-| `render_decision_matrix` | Weighted criteria table with heatmap scoring and rankings | *"Help me decide between 3 apartments"* |
+### Budget Planner
+> *"Help me plan a $5K monthly budget"*
 
-## Workout Plan — Deep Dive
+Pie chart + bar chart breakdown of spending categories with surplus/deficit tracking. I use this whenever I want to sanity-check how I'm allocating money across categories.
 
-The workout component demonstrates advanced MCP Apps patterns:
+<!-- ![Budget Planner in Claude Desktop](screenshots/budget.png) -->
 
-- **Dark theme** with monochromatic zinc palette + blue accent
-- **Expandable exercise cards** with form cues, sets/reps tracking, and muscle group indicators
-- **Progress tracking** — check off exercises, log weights/reps, save sessions to disk via `save_workout_log` MCP tool
-- **History** — persisted across sessions in `~/.claude-workout-log.json`, with upsert (no duplicates)
-- **Batch modifications** — stage multiple exercise tweaks, send all at once to Claude via `app.sendMessage()`
-- **Video links** — auto-requests YouTube form guides on first load, opens via `app.openLink()`
-- **Bidirectional chat** — the widget talks back to Claude: modify exercises, request videos, regenerate plans
+### Product Comparison
+> *"Compare MacBook Air M3 vs ThinkPad X1 Carbon"*
+
+Side-by-side cards with pros/cons, star ratings, and a "Best Pick" badge. Great for any time you're weighing two or more options — laptops, tools, services, whatever.
+
+<!-- ![Product Comparison in Claude Desktop](screenshots/comparison.png) -->
+
+### Trip Planner
+> *"Plan a 4-day trip to Lisbon on a $2K budget"*
+
+Day-by-day itinerary with time slots, estimated costs per activity, and a running budget tracker. Makes trip planning feel tangible instead of just a wall of text.
+
+<!-- ![Trip Planner in Claude Desktop](screenshots/trip.png) -->
+
+### Workout Tracker
+> *"Give me a 4-week strength training plan"*
+
+The most feature-rich of the five — this one demonstrates what's really possible with MCP Apps:
+
+- **Dark theme** with a clean zinc + blue palette
+- **Expandable exercise cards** with form cues, sets/reps, and muscle group indicators
+- **Progress tracking** — check off exercises, log actual weights/reps, save to disk
+- **Persistent history** — saved to `~/.claude-workout-log.json`, with automatic dedup
+- **Video references** — auto-fetches YouTube form guides and opens them via `app.openLink()`
+- **Batch modifications** — tweak multiple exercises, send all changes to Claude at once
+- **Bidirectional chat** — the app talks back to Claude to modify plans, request videos, or regenerate
+
+<!-- ![Workout Tracker in Claude Desktop](screenshots/workout.png) -->
+
+### Decision Matrix
+> *"Help me decide between 3 apartments"*
+
+Weighted criteria table with heatmap-style scoring and automatic rankings. I use this for any multi-factor decision — it forces you to think about what actually matters.
+
+<!-- ![Decision Matrix in Claude Desktop](screenshots/decision.png) -->
+
+---
+
+## Screenshots
+
+*Coming soon — I'll add screenshots showing each app running inside Claude Desktop so you can see what these look like in practice before you install them.*
+
+To add your own screenshots:
+1. Take a screenshot of each app in Claude Desktop
+2. Save them in a `screenshots/` folder
+3. Uncomment the image lines in this README
+
+---
 
 ## Quick Start
 
@@ -54,23 +96,21 @@ Add this to your `claude_desktop_config.json`:
 
 Restart Claude Desktop. Try any of the example prompts above.
 
-## Architecture
+## How It Works
 
 ```
-User prompt → Claude → calls render_* tool → MCP server returns structuredContent
-                                                    ↓
-                                           Claude Desktop loads HTML resource
-                                                    ↓
-                                           React view renders in sandboxed iframe
-                                                    ↓
-                                           View receives data via ontoolresult
-                                                    ↓
-                                           User interacts → app.sendMessage() → Claude
+You type a prompt → Claude calls a render_* tool → MCP server returns structured data + UI
+                                                          ↓
+                                                 Claude Desktop loads the HTML view
+                                                          ↓
+                                                 React app renders in a sandboxed iframe
+                                                          ↓
+                                                 You interact → app talks back to Claude
 ```
 
-Each view is a self-contained React app bundled into a single HTML file via Vite + `vite-plugin-singlefile`. The MCP server registers both a **tool** (to receive structured data) and a **resource** (to serve the HTML view).
+Each view is a self-contained React app bundled into a single HTML file via Vite + `vite-plugin-singlefile`. The MCP server registers both a **tool** (to receive structured data from Claude) and a **resource** (to serve the HTML view to Claude Desktop).
 
-### Key SDK APIs Used
+### Key SDK Patterns
 
 | API | What it does |
 |-----|-------------|
