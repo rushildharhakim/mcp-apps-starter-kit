@@ -189,25 +189,31 @@ registerAppTool(
   {
     title: "Trip Planner",
     description:
-      "Render a day-by-day trip itinerary with time slots, locations, costs, and a budget tracker. Pass itinerary as a JSON array of day objects.",
+      "Render a day-by-day trip itinerary with time slots, locations, costs, and a budget tracker. The user can swap, remove, or comment on individual activities and send style preferences (e.g. 'make it more relaxed') back to Claude. Pass itinerary as a JSON array of day objects. Use the same currency as the trip explorer if the user came from there.",
     inputSchema: {
       itinerary: z
         .string()
         .describe(
           'JSON array: [{"day":"Day 1 - Arrival","activities":[{"time":"9:00 AM","activity":"Visit museum","location":"Downtown","cost":25,"notes":"Book online"}]}, ...]'
         ),
-      total_budget: z.number().optional().describe("Total trip budget"),
+      total_budget: z.number().optional().describe("Total trip budget in the specified currency"),
       title: z.string().optional().describe("Trip title"),
+      currency: z.string().optional().describe("Currency code, e.g. INR, USD, EUR. Defaults to USD."),
+      destination: z.string().optional().describe("Destination name, e.g. 'Goa' — used for regeneration requests"),
+      trip_days: z.number().optional().describe("Number of trip days — used for regeneration requests"),
     },
     _meta: { ui: { resourceUri: TRIP_URI } },
   },
-  async ({ itinerary, total_budget, title }) => {
+  async ({ itinerary, total_budget, title, currency, destination, trip_days }) => {
     const parsed = JSON.parse(itinerary);
     const result = {
       component: "TripPlanner",
       title: title || "Trip Itinerary",
       total_budget,
       itinerary: parsed,
+      currency: currency || "USD",
+      destination,
+      trip_days,
     };
     return {
       structuredContent: result,
