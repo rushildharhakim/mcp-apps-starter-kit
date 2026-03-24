@@ -1,6 +1,6 @@
 # MCP Apps Starter Kit
 
-I built these 5 mini apps for my own daily use inside Claude Desktop — budgeting, comparing products, planning trips, tracking workouts, and making decisions. They turned out to be genuinely useful, so I'm putting them out here for anyone to explore, remix, or use as a starting point for their own MCP Apps.
+I built these 2 mini mcp apps for my own daily use inside Claude Desktop — tracking workouts, planning trips, budgeting, comparing products, and making decisions. They turned out to be genuinely useful, so I'm putting them out here for anyone to explore, remix, or use as a starting point for their own MCP Apps.
 
 Each app renders as a real interactive UI right inside Claude's chat — not just text, but React components with charts, forms, progress tracking, and two-way communication with Claude. If you've ever wished Claude could show you something visual instead of just describing it, this is what that looks like.
 
